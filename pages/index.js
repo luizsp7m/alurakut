@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import MainGrid from '../src/components/MainGrid'
 import Box from '../src/components/Box'
 
@@ -31,8 +31,38 @@ function ProfileSidebar(propriedades) {
   )
 }
 
+function ProfileRelationsBox({ title, itens, type }) {
+  return (
+    <ProfileRelationsBoxWrapper>
+      <h2 className="smallTitle">{title} ({itens.length})</h2>
+
+      <ul>
+        {itens.map((item, index) =>
+          index < 6 && (
+            <li key={index}>
+              { type === 'followers' ? (
+                <a href={item.html_url} target={'_blank'}>
+                  <img src={item.avatar_url} />
+                  <span>{item.login}</span>
+                </a>
+              ) : (
+                <a href={'#'}>
+                  <img src={item.image} />
+                  <span>{item.title}</span>
+                </a>
+              )}
+            </li>
+          )
+        )}
+      </ul>
+    </ProfileRelationsBoxWrapper>
+  );
+}
+
 export default function Home() {
   const usuarioAleatorio = 'luizsp7m';
+
+  const [followers, setFollowers] = useState([]);
 
   const [comunidades, setComunidades] = React.useState([{
     id: '12802378123789378912789789123896123',
@@ -44,24 +74,28 @@ export default function Home() {
     image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/1200px-Unofficial_JavaScript_logo_2.svg.png'
   }]);
 
-  const pessoasFavoritas = [
-    'omariosouto',
-    'juunegreiros',
-    'marcobrunodev',
-    'rafaballerini',
-    'peas',
-    'felipefialho',
-  ]
+  async function getFollowers() {
+
+    await fetch('https://api.github.com/users/luizsp7m/followers').then(response => {
+      return response.json();
+    }).then(response => {
+      setFollowers(response);
+    });
+  }
+
+  useEffect(() => {
+    getFollowers();
+  }, []);
 
   return (
     <>
       <ToastContainer />
       <AlurakutMenu />
       <MainGrid>
-        {/* <Box style="grid-area: profileArea;"> */}
         <div className="profileArea" style={{ gridArea: 'profileArea' }}>
           <ProfileSidebar githubUser={usuarioAleatorio} />
         </div>
+
         <div className="welcomeArea" style={{ gridArea: 'welcomeArea' }}>
           <Box>
             <h1 className="title">
@@ -78,11 +112,8 @@ export default function Home() {
               e.preventDefault();
               const dadosDoForm = new FormData(e.target);
 
-              // console.log('Campo: ', dadosDoForm.get('title'));
-              // console.log('Campo: ', dadosDoForm.get('image'));
-
-              if(!dadosDoForm.get('title')) return;
-              if(!dadosDoForm.get('image')) return;
+              if (!dadosDoForm.get('title')) return;
+              if (!dadosDoForm.get('image')) return;
 
               const comunidade = {
                 id: new Date().toISOString(),
@@ -119,42 +150,19 @@ export default function Home() {
             </form>
           </Box>
         </div>
-        <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
-          <ProfileRelationsBoxWrapper>
-            <h2 className="smallTitle">
-              Comunidades ({comunidades.length})
-            </h2>
-            <ul>
-              {comunidades.map((itemAtual, index) => (
-                index <= 2 && ( // Exibir apenas 3 comunidades
-                  <li key={itemAtual.id}>
-                    <a href={`/users/${itemAtual.title}`}>
-                      <img src={itemAtual.image} />
-                      <span>{itemAtual.title}</span>
-                    </a>
-                  </li>
-                )
-              ))}
-            </ul>
-          </ProfileRelationsBoxWrapper>
-          <ProfileRelationsBoxWrapper>
-            <h2 className="smallTitle">
-              Pessoas da comunidade ({pessoasFavoritas.length})
-            </h2>
 
-            <ul>
-              {pessoasFavoritas.map((itemAtual) => {
-                return (
-                  <li key={itemAtual}>
-                    <a href={`/users/${itemAtual}`}>
-                      <img src={`https://github.com/${itemAtual}.png`} />
-                      <span>{itemAtual}</span>
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
-          </ProfileRelationsBoxWrapper>
+        <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
+          <ProfileRelationsBox
+            title={'Comunidades'}
+            itens={comunidades}
+            type={'community'}
+          />
+
+          <ProfileRelationsBox
+            title={'Pessoas da comunidade'}
+            itens={followers}
+            type={'followers'}
+          />
         </div>
       </MainGrid>
     </>
