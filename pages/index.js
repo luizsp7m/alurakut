@@ -46,8 +46,8 @@ function ProfileRelationsBox({ title, itens, type }) {
                   <span>{item.login}</span>
                 </a>
               ) : (
-                <a href={'#'}>
-                  <img src={item.image} />
+                <a href={'#'} target={'_blank'}>
+                  <img src={item.imageUrl} />
                   <span>{item.title}</span>
                 </a>
               )}
@@ -64,18 +64,9 @@ export default function Home() {
 
   const [followers, setFollowers] = useState([]);
 
-  const [comunidades, setComunidades] = React.useState([{
-    id: '12802378123789378912789789123896123',
-    title: 'Eu odeio acordar cedo',
-    image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
-  }, {
-    id: '12802378123789378912789789128896123',
-    title: 'JS de cada dia',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Unofficial_JavaScript_logo_2.svg/1200px-Unofficial_JavaScript_logo_2.svg.png'
-  }]);
+  const [communities, setCommunities] = useState([]);
 
   async function getFollowers() {
-
     await fetch('https://api.github.com/users/luizsp7m/followers').then(response => {
       return response.json();
     }).then(response => {
@@ -83,9 +74,36 @@ export default function Home() {
     });
   }
 
+  async function getCommunities() {
+    const token = process.env.NEXT_PUBLIC_READ_ONLY;
+
+    await fetch('https://graphql.datocms.com/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        query: '{ allCommunities { id title imageUrl creatorSlug } }'
+      }),
+    })
+      .then(res => res.json())
+      .then((res) => {
+        setCommunities(res.data.allCommunities);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
   useEffect(() => {
     getFollowers();
-  }, []);
+  }, [followers]);
+
+  useEffect(() => {
+    getCommunities();
+  }, [communities]);
 
   return (
     <>
@@ -110,22 +128,31 @@ export default function Home() {
 
             <form onSubmit={function handleCriaComunidade(e) {
               e.preventDefault();
+
               const dadosDoForm = new FormData(e.target);
 
               if (!dadosDoForm.get('title')) return;
               if (!dadosDoForm.get('image')) return;
 
               const comunidade = {
-                id: new Date().toISOString(),
                 title: dadosDoForm.get('title'),
-                image: dadosDoForm.get('image'),
+                imageUrl: dadosDoForm.get('image'),
+                creatorSlug: usuarioAleatorio,
               }
 
-              const comunidadesAtualizadas = [...comunidades, comunidade];
-
-              setComunidades(comunidadesAtualizadas);
-
-              toast('👏 Comunidade adicionada!');
+              fetch('/api/comunidades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(comunidade),
+              }).then(async response => {
+                const dados = await response.json();
+                const comunidadesAtualizadas = [...communities, dados.community];
+                setCommunities(comunidadesAtualizadas);
+                console.log(comunidadesAtualizadas);
+                toast('👏 Comunidade adicionada!');
+              })
             }}>
               <div>
                 <input
@@ -154,7 +181,7 @@ export default function Home() {
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
           <ProfileRelationsBox
             title={'Comunidades'}
-            itens={comunidades}
+            itens={communities}
             type={'community'}
           />
 
