@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import MainGrid from '../src/components/MainGrid'
 import Box from '../src/components/Box'
-
+import jwt from 'jsonwebtoken';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+import nookies from 'nookies';
 
 import {
   AlurakutMenu,
@@ -59,8 +61,8 @@ function ProfileRelationsBox({ title, itens, type }) {
   );
 }
 
-export default function Home() {
-  const usuarioAleatorio = 'luizsp7m';
+export default function Home({ githubUser }) {
+  const usuarioAleatorio = githubUser;
 
   const [followers, setFollowers] = useState([]);
 
@@ -194,4 +196,26 @@ export default function Home() {
       </MainGrid>
     </>
   )
+}
+
+export async function getServerSideProps(ctx) {
+  const cookies = nookies.get(ctx);
+  const token = cookies.USER_TOKEN;
+  const decodedToken = jwt.decode(token);
+  const githubUser = decodedToken?.githubUser;
+
+  if (!githubUser) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: {
+      githubUser,
+    }
+  }
 }

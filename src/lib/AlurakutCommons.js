@@ -364,6 +364,7 @@ const AlurakutLoginScreen = css`
     --commonRadius: 8px;
   }
   .loginScreen {
+    color: #fafafa;
     padding: 16px;
     max-width: 1110px;
     display: grid;
@@ -383,7 +384,7 @@ const AlurakutLoginScreen = css`
     }
     .logoArea {
       grid-area: logoArea;
-      background-color: var(--backgroundTertiary);
+      background-color: #161B22;
       border-radius: var(--commonRadius);
       padding: var(--gutter);
       text-align: center;
@@ -425,7 +426,7 @@ const AlurakutLoginScreen = css`
         padding: var(--gutter);
         padding-left: 50px;
         padding-right: 50px;
-        background-color: var(--backgroundSecondary);
+        background-color: #161B22;
         border-radius: var(--commonRadius);
         flex: 1;
         &:not(:last-child) {
@@ -466,8 +467,8 @@ const AlurakutLoginScreen = css`
       }
     }
     .footerArea {
+      background-color: #161B22;
       grid-area: footerArea;
-      background-color: var(--backgroundQuarternary);
       border-radius: var(--commonRadius);
       padding: 8px;
       p {
