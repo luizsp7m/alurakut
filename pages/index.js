@@ -86,32 +86,36 @@ export default function Home(props) {
       });
   }
 
+  async function getCommunities() {
+    const token = process.env.NEXT_PUBLIC_READ_ONLY;
+
+    setLoadingCommunities(true);
+
+    await fetch('https://graphql.datocms.com/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        query: '{ allCommunities { id title imageUrl creatorSlug } }'
+      }),
+    })
+      .then(res => res.json())
+      .then((res) => {
+        setCommunities(res.data.allCommunities);
+        setInterval(() => { setLoadingCommunities(false); }, 2000)
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
   useEffect(() => {
     getFollowers();
+    getCommunities();
   }, []);
-
-  // async function getCommunities() {
-  //   const token = process.env.NEXT_PUBLIC_READ_ONLY;
-
-  //   await fetch('https://graphql.datocms.com/', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Accept': 'application/json',
-  //       'Authorization': `Bearer ${token}`,
-  //     },
-  //     body: JSON.stringify({
-  //       query: '{ allCommunities { id title imageUrl creatorSlug } }'
-  //     }),
-  //   })
-  //     .then(res => res.json())
-  //     .then((res) => {
-  //       setCommunities(res.data.allCommunities);
-  //     })
-  //     .catch((error) => {
-  //       console.log(error);
-  //     });
-  // }
 
   return (
     <>
@@ -137,30 +141,32 @@ export default function Home(props) {
             <form onSubmit={function handleCriaComunidade(e) {
               e.preventDefault();
 
-              const dadosDoForm = new FormData(e.target);
+              alert('Em desenvolvimento 👨🏽‍💻');
 
-              if (!dadosDoForm.get('title')) return;
-              if (!dadosDoForm.get('image')) return;
+              // const dadosDoForm = new FormData(e.target);
 
-              const comunidade = {
-                title: dadosDoForm.get('title'),
-                imageUrl: dadosDoForm.get('image'),
-                creatorSlug: githubUser,
-              }
+              // if (!dadosDoForm.get('title')) return;
+              // if (!dadosDoForm.get('image')) return;
 
-              fetch('/api/comunidades', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(comunidade),
-              }).then(async response => {
-                const dados = await response.json();
-                const comunidadesAtualizadas = [...communities, dados.community];
-                setCommunities(comunidadesAtualizadas);
-                console.log(comunidadesAtualizadas);
-                toast('👏 Comunidade adicionada!');
-              })
+              // const comunidade = {
+              //   title: dadosDoForm.get('title'),
+              //   imageUrl: dadosDoForm.get('image'),
+              //   creatorSlug: githubUser,
+              // }
+
+              // fetch('/api/comunidades', {
+              //   method: 'POST',
+              //   headers: {
+              //     'Content-Type': 'application/json',
+              //   },
+              //   body: JSON.stringify(comunidade),
+              // }).then(async response => {
+              //   const dados = await response.json();
+              //   const comunidadesAtualizadas = [...communities, dados.community];
+              //   setCommunities(comunidadesAtualizadas);
+              //   console.log(comunidadesAtualizadas);
+              //   toast('👏 Comunidade adicionada!');
+              // })
             }}>
               <div>
                 <input
@@ -187,11 +193,12 @@ export default function Home(props) {
         </div>
 
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
-          {/* <ProfileRelationsBox
+          <ProfileRelationsBox
             title={'Comunidades'}
             itens={communities}
             type={'community'}
-          /> */}
+            loading={loadingCommunities}
+          />
 
           <ProfileRelationsBox
             title={'Pessoas da comunidade'}
