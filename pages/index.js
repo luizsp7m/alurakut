@@ -119,7 +119,7 @@ export default function Home({ githubUser }) {
         <div className="welcomeArea" style={{ gridArea: 'welcomeArea' }}>
           <Box>
             <h1 className="title">
-              Bem vindo(a), {usuarioAleatorio}
+              Bem vindo(a), {usuarioAleatorio}, {process.env.NEXT_PUBLIC_ENV_TEST}
             </h1>
 
             <OrkutNostalgicIconSet />
