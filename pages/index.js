@@ -181,17 +181,17 @@ export default function Home({ githubUser }) {
         </div>
 
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
-          <ProfileRelationsBox
+          {/* <ProfileRelationsBox
             title={'Comunidades'}
             itens={communities}
             type={'community'}
-          />
+          /> */}
 
-          <ProfileRelationsBox
+          {/* <ProfileRelationsBox
             title={'Pessoas da comunidade'}
             itens={followers}
             type={'followers'}
-          />
+          /> */}
         </div>
       </MainGrid>
     </>
