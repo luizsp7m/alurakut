@@ -2,12 +2,13 @@ import React, { useContext } from 'react';
 import styled, { css } from 'styled-components';
 import NextLink from 'next/link';
 import Switch from 'react-switch';
+import nookies from 'nookies';
+import { useRouter } from 'next/router';
 
 import { ThemeContext } from '../context/ThemeStore';
 
 const BASE_URL = 'http://alurakut.vercel.app/';
 const v = '1';
-
 
 function Link({ href, children, ...props }) {
   return (
@@ -23,9 +24,17 @@ function Link({ href, children, ...props }) {
 // Menu
 // ================================================================================================================
 export function AlurakutMenu({ githubUser }) {
+  const router = useRouter();
+
   const [isMenuOpen, setMenuState] = React.useState(false);
 
   const { toggle, theme } = useContext(ThemeContext);
+
+  function logout() {
+    nookies.destroy(null, 'USER_TOKEN');
+    router.push('/login');
+    console.log('Saiu');
+  }
 
   return (
     <AlurakutMenu.Wrapper isMenuOpen={isMenuOpen}>
@@ -56,7 +65,7 @@ export function AlurakutMenu({ githubUser }) {
             />
           </a>
 
-          <a href={`/logout`}>
+          <a onClick={logout}>
             Sair
           </a>
           <div>

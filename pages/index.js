@@ -6,6 +6,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 
+import { TailSpin } from 'react-loading-icons';
+
 import nookies from 'nookies';
 
 import {
@@ -40,7 +42,11 @@ function ProfileRelationsBox({ title, itens, type, loading }) {
       <h2 className="smallTitle">{title} ({loading ? '0' : itens.length})</h2>
 
       <ul>
-        {loading ? 'Loading...' : (
+        {loading ? <TailSpin
+          stroke="#007fff"
+          speed={.75}
+          height={'1rem'}
+        /> : (
           itens.map((item, index) =>
             index < 6 && (
               <li key={index}>
@@ -50,7 +56,7 @@ function ProfileRelationsBox({ title, itens, type, loading }) {
                     <span>{item.login}</span>
                   </a>
                 ) : (
-                  <a href={'#'} target={'_blank'}>
+                  <a href={'#'}>
                     <img src={item.imageUrl} />
                     <span>{item.title}</span>
                   </a>
@@ -72,6 +78,7 @@ export default function Home(props) {
 
   const [loadingFollowers, setLoadingFollowers] = useState(true);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   async function getFollowers() {
     setLoadingFollowers(true);
@@ -141,32 +148,34 @@ export default function Home(props) {
             <form onSubmit={function handleCriaComunidade(e) {
               e.preventDefault();
 
-              alert('Em desenvolvimento 👨🏽‍💻');
+              setLoadingSubmit(true);
 
-              // const dadosDoForm = new FormData(e.target);
+              const dadosDoForm = new FormData(e.target);
 
-              // if (!dadosDoForm.get('title')) return;
-              // if (!dadosDoForm.get('image')) return;
+              if (!dadosDoForm.get('title')) return;
+              if (!dadosDoForm.get('image')) return;
 
-              // const comunidade = {
-              //   title: dadosDoForm.get('title'),
-              //   imageUrl: dadosDoForm.get('image'),
-              //   creatorSlug: githubUser,
-              // }
+              const comunidade = {
+                title: dadosDoForm.get('title'),
+                imageUrl: dadosDoForm.get('image'),
+                creatorSlug: githubUser,
+              }
 
-              // fetch('/api/comunidades', {
-              //   method: 'POST',
-              //   headers: {
-              //     'Content-Type': 'application/json',
-              //   },
-              //   body: JSON.stringify(comunidade),
-              // }).then(async response => {
-              //   const dados = await response.json();
-              //   const comunidadesAtualizadas = [...communities, dados.community];
-              //   setCommunities(comunidadesAtualizadas);
-              //   console.log(comunidadesAtualizadas);
-              //   toast('👏 Comunidade adicionada!');
-              // })
+              fetch('/api/comunidades', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(comunidade),
+              }).then(async response => {
+                // const dados = await response.json();
+                // const comunidadesAtualizadas = [...communities, dados.community];
+                // setCommunities(comunidadesAtualizadas);
+                // console.log(comunidadesAtualizadas);
+                setLoadingSubmit(false);
+                toast('👏 Comunidade adicionada!');
+                getCommunities();
+              })
             }}>
               <div>
                 <input
@@ -185,9 +194,7 @@ export default function Home(props) {
                 />
               </div>
 
-              <button>
-                Criar comunidade
-              </button>
+              {loadingSubmit ? <button disabled>Aguarde...</button> : <button>Criar comunidade</button>}
             </form>
           </Box>
         </div>
