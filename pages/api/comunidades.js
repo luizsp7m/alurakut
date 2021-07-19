@@ -1,6 +1,6 @@
 const { SiteClient } = require('datocms-client');
 
-export default async function teste(request, response) {
+export default async function createCommunity(request, response) {
   if (request.method === 'POST') {
     const TOKEN = process.env.NEXT_PUBLIC_FULL_ACCESS;
     const client = new SiteClient(TOKEN);

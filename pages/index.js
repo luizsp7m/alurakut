@@ -4,6 +4,7 @@ import Box from '../src/components/Box'
 import jwt from 'jsonwebtoken';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
 
 import nookies from 'nookies';
 
@@ -33,27 +34,29 @@ function ProfileSidebar(propriedades) {
   )
 }
 
-function ProfileRelationsBox({ title, itens, type }) {
+function ProfileRelationsBox({ title, itens, type, loading }) {
   return (
     <ProfileRelationsBoxWrapper>
-      <h2 className="smallTitle">{title} ({itens.length})</h2>
+      <h2 className="smallTitle">{title} ({loading ? '0' : itens.length})</h2>
 
       <ul>
-        {itens.map((item, index) =>
-          index < 6 && (
-            <li key={index}>
-              { type === 'followers' ? (
-                <a href={item.html_url} target={'_blank'}>
-                  <img src={item.avatar_url} />
-                  <span>{item.login}</span>
-                </a>
-              ) : (
-                <a href={'#'} target={'_blank'}>
-                  <img src={item.imageUrl} />
-                  <span>{item.title}</span>
-                </a>
-              )}
-            </li>
+        {loading ? 'Loading...' : (
+          itens.map((item, index) =>
+            index < 6 && (
+              <li key={index}>
+                { type === 'followers' ? (
+                  <a href={item.html_url} target={'_blank'}>
+                    <img src={item.avatar_url} />
+                    <span>{item.login}</span>
+                  </a>
+                ) : (
+                  <a href={'#'} target={'_blank'}>
+                    <img src={item.imageUrl} />
+                    <span>{item.title}</span>
+                  </a>
+                )}
+              </li>
+            )
           )
         )}
       </ul>
@@ -61,51 +64,54 @@ function ProfileRelationsBox({ title, itens, type }) {
   );
 }
 
-export default function Home({ githubUser }) {
-  const usuarioAleatorio = githubUser;
+export default function Home(props) {
+  const { githubUser } = props;
 
   const [followers, setFollowers] = useState([]);
-
   const [communities, setCommunities] = useState([]);
 
+  const [loadingFollowers, setLoadingFollowers] = useState(true);
+  const [loadingCommunities, setLoadingCommunities] = useState(true);
+
   async function getFollowers() {
-    await fetch('https://api.github.com/users/luizsp7m/followers').then(response => {
-      return response.json();
-    }).then(response => {
-      setFollowers(response);
-    });
-  }
+    setLoadingFollowers(true);
 
-  async function getCommunities() {
-    const token = process.env.NEXT_PUBLIC_READ_ONLY;
-
-    await fetch('https://graphql.datocms.com/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        query: '{ allCommunities { id title imageUrl creatorSlug } }'
-      }),
-    })
-      .then(res => res.json())
-      .then((res) => {
-        setCommunities(res.data.allCommunities);
+    await axios.get(`https://api.github.com/users/${githubUser}/followers`)
+      .then(response => {
+        setFollowers(response.data);
+        setInterval(() => { setLoadingFollowers(false); }, 2000)
       })
-      .catch((error) => {
+      .catch(error => {
         console.log(error);
       });
   }
 
   useEffect(() => {
     getFollowers();
-  }, [followers]);
+  }, []);
 
-  useEffect(() => {
-    getCommunities();
-  }, [communities]);
+  // async function getCommunities() {
+  //   const token = process.env.NEXT_PUBLIC_READ_ONLY;
+
+  //   await fetch('https://graphql.datocms.com/', {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Accept': 'application/json',
+  //       'Authorization': `Bearer ${token}`,
+  //     },
+  //     body: JSON.stringify({
+  //       query: '{ allCommunities { id title imageUrl creatorSlug } }'
+  //     }),
+  //   })
+  //     .then(res => res.json())
+  //     .then((res) => {
+  //       setCommunities(res.data.allCommunities);
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // }
 
   return (
     <>
@@ -113,13 +119,13 @@ export default function Home({ githubUser }) {
       <AlurakutMenu />
       <MainGrid>
         <div className="profileArea" style={{ gridArea: 'profileArea' }}>
-          <ProfileSidebar githubUser={usuarioAleatorio} />
+          <ProfileSidebar githubUser={githubUser} />
         </div>
 
         <div className="welcomeArea" style={{ gridArea: 'welcomeArea' }}>
           <Box>
             <h1 className="title">
-              Bem vindo(a), {usuarioAleatorio}, {process.env.NEXT_PUBLIC_ENV_TEST}
+              Bem vindo(a), {githubUser}
             </h1>
 
             <OrkutNostalgicIconSet />
@@ -139,7 +145,7 @@ export default function Home({ githubUser }) {
               const comunidade = {
                 title: dadosDoForm.get('title'),
                 imageUrl: dadosDoForm.get('image'),
-                creatorSlug: usuarioAleatorio,
+                creatorSlug: githubUser,
               }
 
               fetch('/api/comunidades', {
@@ -187,11 +193,12 @@ export default function Home({ githubUser }) {
             type={'community'}
           /> */}
 
-          {/* <ProfileRelationsBox
+          <ProfileRelationsBox
             title={'Pessoas da comunidade'}
             itens={followers}
             type={'followers'}
-          /> */}
+            loading={loadingFollowers}
+          />
         </div>
       </MainGrid>
     </>
