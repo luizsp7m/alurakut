@@ -222,21 +222,31 @@ export default function Home(props) {
 export async function getServerSideProps(ctx) {
   const cookies = nookies.get(ctx);
   const token = cookies.USER_TOKEN;
-  const decodedToken = jwt.decode(token);
-  const githubUser = decodedToken?.githubUser;
 
-  if (!githubUser) {
+  const response = await fetch("https://alurakut-imersao-react-omega.vercel.app/api/auth", {
+    headers: {
+      Authorization: token,
+    },
+  });
+
+  const { isAuthenticated } = await response.json();
+
+  if (!isAuthenticated) {
     return {
       redirect: {
-        destination: '/login',
+        destination: "/login",
         permanent: false,
       },
-    }
+    };
   }
+
+  const { githubUser } = jwt.decode(token);
+
+  console.log(githubUser, isAuthenticated)
 
   return {
     props: {
       githubUser,
-    }
-  }
+    },
+  };
 }
